@@ -9,55 +9,67 @@
 
 namespace can::driver::interrupt
 {
-	void EXTILineConfig(EXTI_PortSource_t pPort, EXTI_LineSource_t pLine)
-	{
-		// 0000 0000 &  0000 0011 ---> A PORTU(0)
-		// 0000 0001 &  0000 0011 ---> B PORTU(1)
-		// 0000 0010 &  0000 0011 ---> C PORTU(2) ...
-		uint8_t tShift = (pLine & 0X3U) << 2;
-		uint32_t tValue;
 
-		tValue = SYSCFG->EXTICR[pLine >> 2];
-		tValue &= ~(0xFU << tShift);
-		tValue |= ((uint32_t)pPort << tShift);
-
-		SYSCFG->EXTICR[pLine >> 2] = tValue;
-	}
-
-	void EXTIConfig(EXTI_Init_t* pExtiInit)
-	{
-		uint32_t tRegValue = (uint32_t)EXTI_BASE_ADDR;
-
-		EXTI->IMR &= ~(0X1U << pExtiInit->mLineNumber);
-		EXTI->EMR &= ~(0X1U << pExtiInit->mLineNumber);
-
-		if(pExtiInit->mLineCmd != PinState_t::DISABLE)
+		void Exti::EXTILineConfig(EXTI_PortSource_t pPort, EXTI_LineSource_t pLine)
 		{
-			tRegValue += (uint32_t)pExtiInit->mExtiMode; //interrupt ise 0x00, event ise 0x04
-			*(volatile uint32_t*)(tRegValue) |= (pExtiInit->mLineCmd << pExtiInit->mLineNumber); //İlgili interrupt yada event aktif edilii
+			// 0000 0000 &  0000 0011 ---> A PORTU(0)
+			// 0000 0001 &  0000 0011 ---> B PORTU(1)
+			// 0000 0010 &  0000 0011 ---> C PORTU(2) ...
+			uint8_t tShift = (pLine & 0X3U) << 2;
+			uint32_t tValue;
 
-			EXTI->RTSR &= ~(0X1U << pExtiInit->mLineNumber);
-			EXTI->FTSR &= ~(0X1U << pExtiInit->mLineNumber);
+			tValue = SYSCFG->EXTICR[pLine >> 2];
+			tValue &= ~(0xFU << tShift);
+			tValue |= ((uint32_t)pPort << tShift);
 
-			if(pExtiInit->mTriggerSelection == EXTI_Trigger_t::RisingAndFalling)
+			SYSCFG->EXTICR[pLine >> 2] = tValue;
+		}
+
+		void Exti::EXTIConfig(EXTI_Init_t* pExtiInit)
+		{
+			uint32_t tRegValue = (uint32_t)EXTI_BASE_ADDR;
+
+			EXTI->IMR &= ~(0X1U << pExtiInit->mLineNumber);
+			EXTI->EMR &= ~(0X1U << pExtiInit->mLineNumber);
+
+			if(pExtiInit->mLineCmd != PinState_t::DISABLE)
 			{
-				EXTI->RTSR |= (0X1U << pExtiInit->mLineNumber);
-				EXTI->FTSR |= (0X1U << pExtiInit->mLineNumber);
-			}
-			else if(pExtiInit->mTriggerSelection == EXTI_Trigger_t::Rising)
-				EXTI->RTSR |= (0X1U << pExtiInit->mLineNumber);
-			else if(pExtiInit->mTriggerSelection == EXTI_Trigger_t::Falling)
-				EXTI->FTSR |= (0X1U << pExtiInit->mLineNumber);
-		}
-		else
-		{
-			tRegValue = (uint32_t)(EXTI_BASE_ADDR);
-			tRegValue += (uint32_t)pExtiInit->mExtiMode; //interrupt ise 0x00, event ise 0x04
-			*(volatile uint32_t*)(tRegValue) |= (0X1U << pExtiInit->mLineNumber); //İlgili interrupt yada event aktif edilii
-		}
-	}
-}
+				tRegValue += (uint32_t)pExtiInit->mExtiMode; //interrupt ise 0x00, event ise 0x04
+				*(volatile uint32_t*)(tRegValue) |= (pExtiInit->mLineCmd << pExtiInit->mLineNumber); //İlgili interrupt yada event aktif edilii
 
+				EXTI->RTSR &= ~(0X1U << pExtiInit->mLineNumber);
+				EXTI->FTSR &= ~(0X1U << pExtiInit->mLineNumber);
+
+				if(pExtiInit->mTriggerSelection == EXTI_Trigger_t::RisingAndFalling)
+				{
+					EXTI->RTSR |= (0X1U << pExtiInit->mLineNumber);
+					EXTI->FTSR |= (0X1U << pExtiInit->mLineNumber);
+				}
+				else if(pExtiInit->mTriggerSelection == EXTI_Trigger_t::Rising)
+					EXTI->RTSR |= (0X1U << pExtiInit->mLineNumber);
+				else if(pExtiInit->mTriggerSelection == EXTI_Trigger_t::Falling)
+					EXTI->FTSR |= (0X1U << pExtiInit->mLineNumber);
+			}
+			else
+			{
+				tRegValue = (uint32_t)(EXTI_BASE_ADDR);
+				tRegValue += (uint32_t)pExtiInit->mExtiMode; //interrupt ise 0x00, event ise 0x04
+				*(volatile uint32_t*)(tRegValue) |= (0X1U << pExtiInit->mLineNumber); //İlgili interrupt yada event aktif edilii
+			}
+		}
+
+		void Exti::EXTIEnableInterrupt(EXTI_IRQ_Number_t pIRQNumber)
+		{
+			volatile uint32_t* tVal = (NVIC_ISER0 + (pIRQNumber >> 5));
+			*tVal = (0x1u << (pIRQNumber & 0x1fu));
+		}
+
+		void Exti::EXTIDisableInterrupt(EXTI_IRQ_Number_t pIRQNumber)
+		{
+			volatile uint32_t* tVal = (NVIC_ICER0 + (pIRQNumber >> 5));
+			*tVal = (0x1u << (pIRQNumber & 0x1fu));
+		}
+}
 
 /*
  * EXTILineConfig

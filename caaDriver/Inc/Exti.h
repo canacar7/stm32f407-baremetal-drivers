@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include "stm32f407xx.h"
 
+
 	enum EXTI_PortSource_t : uint8_t
 	{
 		EXTI_PortSource_GPIOA = 0,
@@ -66,26 +67,128 @@
 		uint8_t 	   mLineNumber;
 	};
 
+	enum EXTI_IRQ_Number_t : uint8_t
+	{
+		WWDG       = 0X00u,
+		PWD        = 0X01u,
+		TAMP_STAMP = 0X02u,
+		RTC_WKUP   = 0X03u,
+		FLASH      = 0X04u,
+		RCC_       = 0X05u,
+		EXTI_0     = 0X06u,
+		EXTI_1     = 0X07u,
+		EXTI_2     = 0X08u,
+		EXTI_3     = 0X09u,
+		EXTI_4     = 0X0au
+	};
+
 namespace can::driver::interrupt
 {
-
 	class Exti
 	{
-		void EXTILineConfig(EXTI_PortSource_t pPort, EXTI_LineSource_t pLine);
-		void EXTIConfig(EXTI_Init_t* pExtiInit);
+	public:
+		static void EXTILineConfig(EXTI_PortSource_t pPort, EXTI_LineSource_t pLine);
+		static void EXTIConfig(EXTI_Init_t* pExtiInit);
+		static void EXTIEnableInterrupt(EXTI_IRQ_Number_t pIRQNumber);
+		static void EXTIDisableInterrupt(EXTI_IRQ_Number_t pIRQNumber);
+
 	};
 }
-
 /*
- * 1-) stm32f407xx.h da SYSCFG ve extı REGLERI TANIMLANDI.
- * 2-) LIONECONFİG ile interrptın aktif oalcagı port ve line secilir.
- * 		LineConfig metoudndan once lineconfig paremetlerini vermek icin enum tipiyle tanımlama yapdım. LİneCOnfig port ve line bilgisini aldıktan sonra ilgili regi
- * 		bularak guncellemelidir.
- *
- *	SYSCFG mantıksal oalrak yerlestirelim. İf else yapilari guzel durmaz ayrıca
- *	shiftlemek ve kapilari kullanmak hız acısından da verimli.
  *
  *
+ * 1-) SYSCFG konfigurasyonu yapıldı
+ * 2-) EXTI Konfigurasyommnu yapıldı
  *
  */
+
+/*
+ 1. NVIC icin mikroislemcinin User Guide dokumanina bakilir.
+ 		Cevresel birimlerin kesmelerini yoneten Nested Vectored Interrupt Controller (NVIC) alani incelenir.
+
+ 2. Mimari geregi 1 ile 240 arasinda kesme hatti gelebilir ve 0 ile 255 arasinda oncelik seviyesi belirlenebilir.
+
+ 3. Ilgili register'lara baktigimizda Interrupt Set-Enable Register, Interrupt Clear-Enable Register
+  	  ve Interrupt Priority Register en kritik olanlardir.
+
+ 4. Aktif etmek icin Set-Enable, pasif etmek icin Clear-Enable,
+  	  oncelik duzeni icin Priority register'i kullanilir.
+
+ 5. Set-Enable tarafinda NVIC_ISER0 ile NVIC_ISER7 arasinda toplam 8 adet register mevcuttur.
+
+ 6. Bu register'lari kontrol ederken 0 yazmanin bir islevi yoktur;
+ 	 	 1 yazildiginda ilgili hattin kesmesi aktif edilir.
+
+ 7. Bu 8 adet register, kendisine baglanan IRQ numarasi ile iliskilidir.
+  	  Ornegin A portunun 0. pininden kesme alacaksak bunu EXTI0 uzerinden aliriz.
+
+ 8. Konfigurasyonu tamamlamak adina EXTI0 hattinin IRQ numarasini bulmamiz gerekir.
+
+ 9. Reference Manual icindeki "Interrupts and Events" bolumunde bulunan "Vector Table for STM32"
+  	  tablosunun en s"ol sutunundaki "Position" degeri bizim IRQ numaramizdir.
+  	  EXTI Line0 kesmesinin IRQ numarasi 6'dir.
+
+ 10. IRQ numarasini bulduktan sonra mikroislemcinin User Guide dokumanindan
+ 	 	 bu numaranin hangi register araligina denk geldigine bakilir
+ 	 	 (0-31 arasi ISER0, 32-63 arasi ISER1 gibi).
+ 	 	 IRQ numarasi 6 oldugu icin bu hat NVIC_ISER0 register'inda yer alacaktir.
+
+ 11. Hangi register ve bitin etkilenecegi su sekilde hesaplanir:
+ 	 	 6 / 32 islemi ile NVIC_ISER0 register'i secilir,
+ 	  	 6 % 32 islemi ile 6. bitin setlenmesi gerektigi bulunur.
+
+
+ 12. STM32 islemcisinin Cortex-M4 User Guide dokumaninda yer alan tanimlar
+    stm32f407xx.h dosyasinda tanimlanir.
+    NVIC register adresleri volatile uint32_t pointer olarak
+    #define NVIC_ISER0 ((volatile uint32_t*)(0xE000E100UL))
+    biciminde olusturulur.
+
+ 13. Buradaki tanimlamaya dikkat edilmelidir.
+    Pointer tipi uint32_t* oldugu icin bu adrese 1 eklemek,
+    adres degerini 4 byte ileri kaydirarak
+    dogrudan bir sonraki NVIC_ISER register'ina gecis saglar.
+
+ 14. Ardindan NVIC_EnableInterrupt fonksiyonu yazilir.
+    Arguman olarak uint8_t IRQ_Number degeri alinir.
+    Bu degere gore mikroislemcinin ilgili NVIC register'i konfigure edilir.
+
+ 15. Metot yazilirken bolme islemi kritik onem tasir.
+    Bir register 32 bit (2^5) tuttugundan dolayi
+    IRQ numarasi 5 birim saga kaydirilarak (IRQ_Number >> 5)
+    NVIC_ISER0 adresine eklenir ve dogru NVIC_ISERx register'ina ulasilir.
+
+ 16. Son adimda mod 32 islemi yapilarak (IRQ_Number & 0x1F)
+    ilgili register icindeki bit pozisyonu bulunur.
+    Bu bit set edilerek kesme hatti aktif (enable) hale getirilir.
+
+*/
 #endif /* INC_EXTI_H_ */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

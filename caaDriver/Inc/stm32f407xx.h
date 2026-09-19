@@ -10,11 +10,6 @@
 
 
 #include  <stdint.h>
-/*
- * NOT: #define preprocessor direktifidir, namespace kapsami tanimaz.
- * Bu yuzden namespace kaldirildi, isim onegi (BASE_ADDR) yeterli.
- */
-
 
 #define SET_BIT(REG, BIT)    ((REG) |= (BIT))
 #define CLEAR_BIT(REG, BIT)  ((REG) &= ~(BIT))
@@ -124,11 +119,13 @@
   #define ETH_MAC_BASE_ADDR     		(AHB1_BASE_ADDR + 0x8000UL)
   #define USB_OTG_HS_BASE_ADDR  		(AHB1_BASE_ADDR + 0x20000UL)    /* -> 0x40040000 */
 
-/*
- * volatile bunu optimize etme aga. Cunku optimize edilen kodlarda defalarca okuma islemlerinde derelyici otomatik olarak
- * 	tek deger ataması yapip okumalrı es gecebilir.
- *
- */
+
+	/*
+	 * NVIC ADRESS
+	 */
+  #define NVIC_ISER0 				    ((volatile uint32_t*)0xE000E100UL)
+  #define NVIC_ICER0                    NVIC_ISER0 + 8
+
 typedef struct
 {
 	volatile uint32_t MODER;
