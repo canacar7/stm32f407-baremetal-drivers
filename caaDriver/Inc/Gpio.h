@@ -59,6 +59,26 @@ typedef enum
 
 }GPIO_PullUp_PullDown_t;
 
+typedef enum 
+{
+	GPIO_AF0  = 0X0U,
+	GPIO_AF1  = 0X1U,
+	GPIO_AF2  = 0X2U,
+	GPIO_AF3  = 0X3U,
+	GPIO_AF4  = 0X4U,
+	GPIO_AF5  = 0X5U,
+	GPIO_AF6  = 0X6U,
+	GPIO_AF7  = 0X7U,
+	GPIO_AF8  = 0X8U,
+	GPIO_AF9  = 0X9U,
+	GPIO_AF10 = 0XaU,
+	GPIO_AF11 = 0XbU,
+	GPIO_AF12 = 0XcU,
+	GPIO_AF13 = 0XdU,
+	GPIO_AF14 = 0XeU,
+	GPIO_AF15 = 0XfU
+}GPIO_Alternate_t;
+
 typedef struct
 {
 	uint32_t pinNumber;

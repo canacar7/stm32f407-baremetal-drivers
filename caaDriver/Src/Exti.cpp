@@ -35,7 +35,7 @@ namespace can::driver::interrupt
 			if(pExtiInit->mLineCmd != PinState_t::DISABLE)
 			{
 				tRegValue += (uint32_t)pExtiInit->mExtiMode; //interrupt ise 0x00, event ise 0x04
-				*(volatile uint32_t*)(tRegValue) |= (pExtiInit->mLineCmd << pExtiInit->mLineNumber); //İlgili interrupt yada event aktif edilii
+				*(volatile uint32_t*)(tRegValue) |= static_cast<uint32_t>(pExtiInit->mLineCmd) << (pExtiInit->mLineNumber); //İlgili interrupt yada event aktif edilii
 
 				EXTI->RTSR &= ~(0X1U << pExtiInit->mLineNumber);
 				EXTI->FTSR &= ~(0X1U << pExtiInit->mLineNumber);
@@ -58,13 +58,16 @@ namespace can::driver::interrupt
 			}
 		}
 
-		void Exti::EXTIEnableInterrupt(EXTI_IRQ_Number_t pIRQNumber)
+		void Exti::EXTIEnableInterrupt(IRQn_t pIRQNumber)
 		{
-			volatile uint32_t* tVal = (NVIC_ISER0 + (pIRQNumber >> 5));
-			*tVal = (0x1u << (pIRQNumber & 0x1fu));
+			uint32_t tVAl = 0;
+			tVAl = *( (pIRQNumber >> 5U) + (NVIC_ISER0) );
+			tVAl &= ~(0x1u << (pIRQNumber & 0x1fu));	
+			tVAl |=  (0x1u << (pIRQNumber & 0x1fu));	
+			*((pIRQNumber >> 5U) + NVIC_ISER0) = tVAl;
 		}
 
-		void Exti::EXTIDisableInterrupt(EXTI_IRQ_Number_t pIRQNumber)
+		void Exti::EXTIDisableInterrupt(IRQn_t pIRQNumber)
 		{
 			volatile uint32_t* tVal = (NVIC_ICER0 + (pIRQNumber >> 5));
 			*tVal = (0x1u << (pIRQNumber & 0x1fu));

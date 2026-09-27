@@ -67,19 +67,22 @@
 		uint8_t 	   mLineNumber;
 	};
 
-	enum EXTI_IRQ_Number_t : uint8_t
+	enum IRQn_t : uint8_t
 	{
-		WWDG       = 0X00u,
-		PWD        = 0X01u,
-		TAMP_STAMP = 0X02u,
-		RTC_WKUP   = 0X03u,
-		FLASH      = 0X04u,
-		RCC_       = 0X05u,
-		EXTI_0     = 0X06u,
-		EXTI_1     = 0X07u,
-		EXTI_2     = 0X08u,
-		EXTI_3     = 0X09u,
-		EXTI_4     = 0X0au
+		WWDG_IRQ       = 0X00u,
+		PWD_IRQ        = 0X01u,
+		TAMP_STAMP_IRQ = 0X02u,
+		RTC_WKUP_IRQ   = 0X03u,
+		FLASH_IRQ      = 0X04u,
+		RCC_IRQ        = 0X05u,
+		EXTI_0_IRQ     = 0X06u,
+		EXTI_1_IRQ     = 0X07u,
+		EXTI_2_IRQ     = 0X08u,
+		EXTI_3_IRQ     = 0X09u,
+		EXTI_4_IRQ     = 0X0au,
+		TIM2_IRQ 	   = 0X1cu,
+		USART1_IRQ     = 0x25u,
+		USART2_IRQ     = 0X26u
 	};
 
 namespace can::driver::interrupt
@@ -89,8 +92,8 @@ namespace can::driver::interrupt
 	public:
 		static void EXTILineConfig(EXTI_PortSource_t pPort, EXTI_LineSource_t pLine);
 		static void EXTIConfig(EXTI_Init_t* pExtiInit);
-		static void EXTIEnableInterrupt(EXTI_IRQ_Number_t pIRQNumber);
-		static void EXTIDisableInterrupt(EXTI_IRQ_Number_t pIRQNumber);
+		static void EXTIEnableInterrupt(IRQn_t pIRQNumber);
+		static void EXTIDisableInterrupt(IRQn_t pIRQNumber);
 
 	};
 }

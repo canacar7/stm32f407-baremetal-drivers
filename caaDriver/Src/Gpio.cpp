@@ -34,6 +34,15 @@ namespace can::driver::gpio
 				tRegValue &= ~(0X3U << (pos * 2));
 				tRegValue |= (pInit.pupd << (pos * 2));
 				pGPIOx->PUPDR = tRegValue;
+			
+				
+			if(GPIO_Mode_t::MODE_ALTERNATE_FUNC == pInit.mode)
+			{
+				tRegValue = pGPIOx->AFR[pos >> 3u]; 
+				tRegValue &= ~(0xfu <<  ( ( pos & 0x7u ) * 4 ) );
+				tRegValue |= (pInit.alternate << ( ( pos & 0x7u ) * 4 ) );
+				pGPIOx->AFR[pos >> 3u] =  tRegValue;
+			}
 			}
 		}
 	}

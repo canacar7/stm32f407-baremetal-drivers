@@ -123,8 +123,9 @@
 	/*
 	 * NVIC ADRESS
 	 */
-  #define NVIC_ISER0 				    ((volatile uint32_t*)0xE000E100UL)
-  #define NVIC_ICER0                    NVIC_ISER0 + 8
+  #define NVIC_ISER0    ((volatile uint32_t*)0xE000E100UL)
+  #define NVIC_ICER0    ((volatile uint32_t*)0xE000E180UL)
+
 
 typedef struct
 {
@@ -193,11 +194,34 @@ typedef struct
 
 }EXTI_t;
 
-enum PinState_t : uint8_t
+typedef struct
+{
+	volatile uint32_t SR;  // USART donanımın o anki calisma durumu
+	volatile uint32_t DR;  // Gonderilecek veya alinan verinin tutuldugu merkez register.
+	volatile uint32_t BRR; // BaudRAte Register
+	volatile uint32_t CR1; // Iletisim için temel parametreleri ve kesmeleri yonetir. 
+                         // UE 13.bit ---> USART modulunu acar kapatır. 
+                         // M  12.bit ---> Word length 
+                         // PCE / PS 10 ve 9 bit  ---> Partiy COntrol enable ve tipi even odd
+                         // TE / RE 3 ve 2 bit ---> Verici veya aliciyi devreye sokar. 
+	volatile uint32_t CR2; // Stop bitleirni , senkron saat sinyalini ve coklu islemci adreslemesini yapar.  
+	volatile uint32_t CR3; // DMA kanallarını, hata kesmelerini  ve donanımsal el sıkışma hatlarını yonetir. 
+	volatile uint32_t GTPR;
+}USART_t;
+
+
+enum  class PinState_t : uint8_t
 {
 	DISABLE = 0X0U,
 	ENABLE  = 0X01U
 };
+
+enum class FunctionalState_t : uint8_t
+{
+	DISABLE = 0X0U,
+	ENABLE  = 0X01U
+};
+
 
 
 #define  GPIOA  ((GPIO_t*)(GPIOA_BASE_ADDR))
@@ -209,6 +233,16 @@ enum PinState_t : uint8_t
 #define  RCC    ((RCC_t*)(RCC_BASE_ADDR))
 #define  SYSCFG ((SYSCFG_t*)(SYSCFG_BASE_ADDR))
 #define  EXTI 	((EXTI_t*)(EXTI_BASE_ADDR))
+
+#define  USART1 ((USART_t*)(USART1_BASE_ADDR))
+#define  USART6 ((USART_t*)(USART6_BASE_ADDR))
+
+#define  USART2 ((USART_t*)(USART2_BASE_ADDR))
+#define  USART3 ((USART_t*)(USART3_BASE_ADDR))
+#define  UART4  ((USART_t*)(UART4_BASE_ADDR))
+#define  UART5  ((USART_t*)(UART5_BASE_ADDR))
+
+
 
 #define RCC_AHB1ENR_GPIOAEN_Pos  (0u)
 #define RCC_AHB1ENR_GPIOAEN_Mask (1u << RCC_AHB1ENR_GPIOAEN_Pos)
@@ -229,6 +263,41 @@ enum PinState_t : uint8_t
 #define RCC_APB2ENR_SYSCFG_Pos   (14u)
 #define RCC_APB2ENR_SYSCFG_Mask  (1u << RCC_APB2ENR_SYSCFG_Pos)
 #define RCC_APB2ENR_SYSCFGEN	 (RCC_APB2ENR_SYSCFG_Mask)
+
+#define RCC_APB1EN_USART2_Pos 	 (17u)
+#define RCC_APB1EN_USART2_Mask   (1u << RCC_APB1EN_USART2_Pos)
+#define RCC_APB1EN_USART2EN		 (RCC_APB1EN_USART2_Mask)
+
+/*
+  Flag Definations 
+*/
+
+/* USART bit POZISYONLARI (maske degil) - kullanimda (0x1U << X) seklinde kaydirilir */
+
+/* CR1 */
+#define USART_CR1_OVER8  (15u)
+#define USART_CR1_UE     (13u)
+#define USART_CR1_M      (12u)
+#define USART_CR1_PCE    (10u)
+#define USART_CR1_PS     (9u)
+#define USART_CR1_TXEIE  (7u)
+#define USART_CR1_TCIE   (6u)
+#define USART_CR1_RXNEIE (5u)
+#define USART_CR1_IDLEIE (4u)
+#define USART_CR1_TE     (3u)
+#define USART_CR1_RE     (2u)
+
+/* CR2 */
+#define USART_CR2_STOP  (12u)
+
+/* CR3 */
+#define USART_CR3_CTSE  (9u)
+#define USART_CR3_RTSE  (8u)
+
+/* SR */
+#define USART_SR_TXE    (7u)
+#define USART_SR_TC     (6u)
+#define USART_SR_RXNE   (5u)
 
 #include "Rcc.h"
 #include "Gpio.h"

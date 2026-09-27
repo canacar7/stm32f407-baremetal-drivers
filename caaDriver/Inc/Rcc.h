@@ -29,17 +29,27 @@
 											(void)dummy; \
 										}while(0)
 
+#define RCC_USART2_CLK_ENABLE()			do{ SET_BIT(RCC->APB1ENR, RCC_APB1EN_USART2EN);  \
+											volatile uint32_t dummy = READ_BIT(RCC->APB1ENR, RCC_APB1EN_USART2EN); \
+											(void)dummy; \
+										}while(0)										
+
 #define RCC_GPIOA_CLK_DISABLE()			CLEAR_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIOAEN)
 #define RCC_GPIOB_CLK_DISABLE()			CLEAR_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIOBEN)
 #define RCC_GPIOC_CLK_DISABLE()			CLEAR_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIOCEN)
 #define RCC_GPIOD_CLK_DISABLE()			CLEAR_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIODEN)
 #define RCC_SYSCFG_CLK_DISABLE()		CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN)
-
+#define RCC_USART2_CLK_DISABLE()		CLEAR_BIT(RCC->APB1ENR, RCC_APB1EN_USART2EN)
 
 namespace can::driver::rcc
 {
     void setBit(volatile uint32_t &reg, uint32_t bitMask);
     void clearBit(volatile uint32_t &reg, uint32_t bitMask);
+	uint32_t getSystemClk(void);
+	uint32_t getHClock();
+	uint32_t getAPB1Clock();
+	uint32_t getAPB2Clock();
+
 }
 
 
