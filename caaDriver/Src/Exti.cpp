@@ -54,7 +54,7 @@ namespace can::driver::interrupt
 			{
 				tRegValue = (uint32_t)(EXTI_BASE_ADDR);
 				tRegValue += (uint32_t)pExtiInit->mExtiMode; //interrupt ise 0x00, event ise 0x04
-				*(volatile uint32_t*)(tRegValue) |= (0X1U << pExtiInit->mLineNumber); //İlgili interrupt yada event aktif edilii
+				*(volatile uint32_t*)(tRegValue) &= ~(0X1U << pExtiInit->mLineNumber); //İlgili interrupt yada event aktif edilii
 			}
 		}
 

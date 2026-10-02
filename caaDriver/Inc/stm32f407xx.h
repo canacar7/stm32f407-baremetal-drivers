@@ -209,6 +209,30 @@ typedef struct
 	volatile uint32_t GTPR;
 }USART_t;
 
+typedef struct
+{
+      volatile uint32_t CR1;    // 0x00: Sayaci acar/kapatir (CEN), sayma yonu, ARR preload (ARPE)
+      volatile uint32_t CR2;    // 0x04: Master mod / trigger cikisi
+      volatile uint32_t SMCR;   // 0x08: Slave mod, harici saat secimi
+      volatile uint32_t DIER;   // 0x0C: Kesme ve DMA izinleri (UIE, CCxIE ...)
+      volatile uint32_t SR;     // 0x10: Durum bayraklari (UIF, CCxIF ...)
+      volatile uint32_t EGR;    // 0x14: Yazilimla olay uretme (UG)
+      volatile uint32_t CCMR1;  // 0x18: Kanal 1-2 capture/compare modu
+      volatile uint32_t CCMR2;  // 0x1C: Kanal 3-4 capture/compare modu
+      volatile uint32_t CCER;   // 0x20: Capture/compare cikis izinleri ve polarite
+      volatile uint32_t CNT;    // 0x24: Sayacin anlik degeri (TIM2/TIM5 icin 32 bit)
+      volatile uint32_t PSC;    // 0x28: Prescaler -> sayac saati = f_TIM / (PSC + 1)
+      volatile uint32_t ARR;    // 0x2C: Auto-reload, sayac bu degere ulasinca basa doner
+      uint32_t          DUMMY0; // 0x30: Rezerv (TIM1/8'de RCR)
+      volatile uint32_t CCR1;   // 0x34
+      volatile uint32_t CCR2;   // 0x38
+      volatile uint32_t CCR3;   // 0x3C
+      volatile uint32_t CCR4;   // 0x40
+      uint32_t          DUMMY1; // 0x44: Rezerv (TIM1/8'de BDTR)
+      volatile uint32_t DCR;    // 0x48: DMA kontrol
+      volatile uint32_t DMAR;   // 0x4C: DMA burst erisim adresi
+      volatile uint32_t OR;     // 0x50: Option register (TIM2/TIM5'e ozel)
+}TIM_t;
 
 enum  class PinState_t : uint8_t
 {
@@ -242,6 +266,8 @@ enum class FunctionalState_t : uint8_t
 #define  UART4  ((USART_t*)(UART4_BASE_ADDR))
 #define  UART5  ((USART_t*)(UART5_BASE_ADDR))
 
+#define  TIM2   ((TIM_t*)(TIM2_BASE_ADDR)) 
+
 
 
 #define RCC_AHB1ENR_GPIOAEN_Pos  (0u)
@@ -262,11 +288,15 @@ enum class FunctionalState_t : uint8_t
 
 #define RCC_APB2ENR_SYSCFG_Pos   (14u)
 #define RCC_APB2ENR_SYSCFG_Mask  (1u << RCC_APB2ENR_SYSCFG_Pos)
-#define RCC_APB2ENR_SYSCFGEN	 (RCC_APB2ENR_SYSCFG_Mask)
+#define RCC_APB2ENR_SYSCFGEN	   (RCC_APB2ENR_SYSCFG_Mask)
 
 #define RCC_APB1EN_USART2_Pos 	 (17u)
 #define RCC_APB1EN_USART2_Mask   (1u << RCC_APB1EN_USART2_Pos)
-#define RCC_APB1EN_USART2EN		 (RCC_APB1EN_USART2_Mask)
+#define RCC_APB1EN_USART2EN		   (RCC_APB1EN_USART2_Mask)
+
+#define RCC_APB1EN_TIM2_Pos 	 (0u)
+#define RCC_APB1EN_TIM2_Mask   (1u << RCC_APB1EN_TIM2_Pos)
+#define RCC_APB1EN_TIM2EN		   (RCC_APB1EN_TIM2_Mask)
 
 /*
   Flag Definations 

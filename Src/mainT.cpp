@@ -3,16 +3,18 @@
 #include  "../caaDriver/Inc/stm32f407xx.h"
 #include  "../caaDriver/Inc/Exti.h"
 #include "../caaDriver/Inc/Usart.h"
+#include "../caaDriver/Inc/Timer.h"
 #include <iostream>
 #include <string>
 #include <cstring>
 
 USART_Handle  mUSartHandle;
+TIMER_Handle  mTimerHandle;
 
 static void GPIOConfig();
 static void USARTConfig();
 static void GPIOInterruptConfig();
-
+static void TIMERConfig();
 
 
 extern "C" void EXTI0_IRQHandler(void)
@@ -31,6 +33,11 @@ extern "C" void USART2_IRQHandler(void)
     can::driver::usart::USART_InterruptHandler(&mUSartHandle);
 }
 
+extern "C" void TIM2_IRQHandler(void)
+{
+    // Donanım buraya atladığında, biz işi kendi kütüphanemizin profesyonel yöneticisine devrediyoruz
+    can::driver::timer::TIMER_InterruptHandler(&mTimerHandle);
+}
 int main(void)
 {
     char msgToSend[] = "CAN ACAR\n";
@@ -39,6 +46,10 @@ int main(void)
     GPIOConfig();
 	USARTConfig();
 	GPIOInterruptConfig();
+    TIMERConfig();
+    can::driver::timer::TIMER_Start(&mTimerHandle);
+
+
     can::driver::interrupt::Exti::EXTIEnableInterrupt(IRQn_t::USART2_IRQ);
     can::driver::usart::USART_TransmitDataIT(&mUSartHandle, (uint8_t*)msgToSend, strlen(msgToSend));
     can::driver::usart::USART_ReceiveDataIT(&mUSartHandle, (uint8_t*)msgToReceiced, 20); //her 20 byte interrup olusacak.
@@ -114,4 +125,17 @@ void GPIOInterruptConfig()
 	can::driver::interrupt::Exti::EXTIConfig(&mExtiInit);
 
 	can::driver::interrupt::Exti::EXTIEnableInterrupt(IRQn_t::EXTI_0_IRQ);
+}
+
+static void TIMERConfig()
+{
+    RCC_TIM2_CLK_ENABLE();
+
+    mTimerHandle.mInstance          = TIM2;
+    mTimerHandle.mInit.mPrescaler   = 15;
+    mTimerHandle.mInit.mPeriod      = 0xffffffffu;
+    mTimerHandle.mInit.mCounterMode = TIMER_CounterMode_t::UP;
+
+    can::driver::timer::TIMER_Init(&mTimerHandle);
+    // can::driver::interrupt::Exti::EXTIEnableInterrupt(IRQn_t::TIM2_IRQ);
 }

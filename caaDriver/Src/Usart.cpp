@@ -259,9 +259,9 @@ namespace can::driver::usart
     void USART_ReceiveDataIT(USART_Handle* pHandle, uint8_t* pData, uint16_t dataSize)
     {
         USART_BusState_t tUsartBusState = pHandle->mRxStatus;
-        if(USART_BusState_t::USART_BUS_TX != tUsartBusState)
+        if(USART_BusState_t::USART_BUS_RX != tUsartBusState)
         {
-            pHandle->mRxBuffer  = (uint8_t*)pData;
+            pHandle->mRxBuffer      = (uint8_t*)pData;
             pHandle->mRxBufferSize  = (uint16_t)dataSize;
             pHandle->mRxStatus      = USART_BusState_t::USART_BUS_RX;
             pHandle->RxISR_Function = USART_READ_WITH_IT;
